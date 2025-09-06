@@ -1,4 +1,4 @@
-package simple;
+package finalCode;
 
 import java.util.*;
 
@@ -9,81 +9,14 @@ public class JPS {
     static final int WIDTH = 501;
 
     /**
-     * Represents a node in the maze for the JPS algorithm.
-     * Each node has a position (row, col), cost from the start (g),
-     * heuristic cost to the end (h), total cost (f = g + h),
-     * parent direction, and a reference to its parent node for path reconstruction.
-     */
-    static class Node {
-        int row, col;
-        int g, h, f;
-        Node parent;
-        int dx, dy; // Direction from parent to this node
-
-        public Node(int row, int col) {
-            this.row = row;
-            this.col = col;
-            this.g = 0;
-            this.h = 0;
-            this.f = 0;
-            this.parent = null;
-            this.dx = 0;
-            this.dy = 0;
-        }
-
-        public Node(int row, int col, int dx, int dy) {
-            this.row = row;
-            this.col = col;
-            this.g = 0;
-            this.h = 0;
-            this.f = 0;
-            this.parent = null;
-            this.dx = dx;
-            this.dy = dy;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null || getClass() != obj.getClass())
-                return false;
-            Node node = (Node) obj;
-            return row == node.row && col == node.col;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(row, col);
-        }
-    }
-
-    /**
-     * A container for the results of the JPS algorithm execution.
-     * It includes the found path, the execution time in nanoseconds,
-     * and the number of nodes explored.
-     */
-    public static class JPSResult {
-        public List<Node> path;
-        public long executionTime;
-        public int exploredNodes;
-
-        public JPSResult(List<Node> path, long executionTime, int exploredNodes) {
-            this.path = path;
-            this.executionTime = executionTime;
-            this.exploredNodes = exploredNodes;
-        }
-    }
-
-    /**
      * Finds the shortest path in a maze from 'S' to 'E' using the JPS algorithm.
      *
      * @param maze A 2D boolean array representing the maze. true is walkable, false
      *             is wall.
-     * @return An JPSResult object containing the path, execution time, and number
+     * @return An Result object containing the path, execution time, and number
      *         of explored nodes.
      */
-    public JPSResult findPath(boolean[][] maze) {
+    public Result findPath(boolean[][] maze) {
         long startTime = System.nanoTime();
 
         Node startNode = new Node(1, 1);
@@ -113,7 +46,7 @@ public class JPS {
             if (currentNode.row == endNode.row && currentNode.col == endNode.col) {
                 List<Node> path = reconstructPath(currentNode);
                 long endTime = System.nanoTime();
-                return new JPSResult(path, endTime - startTime, exploredNodes);
+                return new Result(path, endTime - startTime, exploredNodes);
             }
 
             closedList.add(currentKey);
@@ -152,7 +85,7 @@ public class JPS {
 
         long endTime = System.nanoTime();
         // No path found
-        return new JPSResult(null, endTime - startTime, exploredNodes);
+        return new Result(null, endTime - startTime, closedList.size());
     }
 
     /**
@@ -308,54 +241,5 @@ public class JPS {
         }
         Collections.reverse(path);
         return path;
-    }
-
-    public static void main(String[] args) {
-        PrimsSimple p = new PrimsSimple(WIDTH, HEIGHT);
-        WilsonsSimple w = new WilsonsSimple(HEIGHT, WIDTH);
-        AStar astar = new AStar();
-        for (int i = 0; i < SAMPLES; i++) {
-            astar.runWilsons(w);
-            astar.runPrims(p);
-        }
-        astar.wilsonTime /= SAMPLES;
-        astar.wilsonNodes /= SAMPLES;
-        astar.primsTime /= SAMPLES;
-        astar.primsNodes /= SAMPLES;
-        astar.primsLength /= SAMPLES;
-        astar.wilsonLength /= SAMPLES;
-
-        System.out.println("Prims:");
-        System.out.println("\tAverage Execution time:\t" + astar.primsTime / 1000000.0 + " ms");
-        System.out.println("\tAverage Nodes Explored:\t" + astar.primsNodes);
-        System.out.println("\tAverage Path Length:\t" + astar.primsLength);
-        System.out.println("Wilsons:");
-        System.out.println("\tAverage Execution time:\t" + astar.wilsonTime / 1000000.0 + " ms");
-        System.out.println("\tAverage Nodes Explored:\t" + astar.wilsonNodes);
-        System.out.println("\tAverage Path Length:\t" + astar.wilsonLength);
-    }
-
-    long wilsonTime, primsTime;
-    double wilsonNodes, primsNodes;
-    double wilsonLength, primsLength;
-
-    void runWilsons(WilsonsSimple w) {
-        JPSResult result = findPath(w.generateMaze());
-        if (result.path != null) {
-            wilsonTime += result.executionTime;
-            wilsonNodes += result.exploredNodes;
-            wilsonLength += result.path.size();
-        } else
-            System.out.println("Path not found.");
-    }
-
-    void runPrims(PrimsSimple p) {
-        JPSResult result = findPath(p.generateMaze());
-        if (result.path != null) {
-            primsTime += result.executionTime;
-            primsNodes += result.exploredNodes;
-            primsLength += result.path.size();
-        } else
-            System.out.println("Path not found.");
     }
 }

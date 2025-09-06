@@ -1,14 +1,23 @@
-package simple;
+package finalCode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.awt.Point;
 
 public class WilsonsSimple {
 
-    private static int WIDTH = 25;
-    private static int HEIGHT = 25;
-    private float IMPERFECTION = 0.3f;
+    private int WIDTH = 25;
+    private int HEIGHT = 25;
+    private float imperfection = 0.05f;
+
+    public float getImperfection() {
+        return imperfection;
+    }
+
+    public void setImperfection(float iMPERFECTION) {
+        imperfection = iMPERFECTION;
+    }
 
     private boolean[][] maze;
     private boolean[][] inMaze;
@@ -17,7 +26,16 @@ public class WilsonsSimple {
     private Point currentWalker;
     private Random random;
 
+    public WilsonsSimple() {
+
+    }
+
     public WilsonsSimple(int w, int h) {
+        WIDTH = w;
+        HEIGHT = h;
+    }
+
+    public void setSize(int w, int h) {
         WIDTH = w;
         HEIGHT = h;
     }
@@ -43,7 +61,7 @@ public class WilsonsSimple {
         }
     }
 
-    public boolean[][] generateMaze() {
+    public boolean[][] generatePerfectMaze() {
         initializeMaze();
 
         // Wilson's algorithm: Start with random cell in maze
@@ -62,9 +80,18 @@ public class WilsonsSimple {
         // Ensure start and end points are accessible for AI training
         ensureStartEndConnectivity();
 
+        return maze;
+    }
+
+    public boolean[][] generateImperfectMaze() {
+        generatePerfectMaze();
         // Add imperfections to the maze
         addExtraEdges();
+        return maze;
+    }
 
+    public boolean[][] imperfectifyMaze() {
+        addExtraEdges();
         return maze;
     }
 
@@ -122,6 +149,7 @@ public class WilsonsSimple {
         }
 
         currentWalker = null;
+        currentPath.clear();
     }
 
     private Point getRandomNeighbor(Point p) {
@@ -135,17 +163,6 @@ public class WilsonsSimple {
             // Check bounds - keep border walls intact
             if (nx >= 1 && nx <= WIDTH - 2 && ny >= 1 && ny <= HEIGHT - 2) {
                 neighbors.add(new Point(nx, ny));
-            }
-        }
-
-        // If no valid neighbors, try adjacent cells (fallback)
-        if (neighbors.isEmpty()) {
-            for (int[] dir : directions) {
-                int nx = p.x + dir[0] / 2;
-                int ny = p.y + dir[1] / 2;
-                if (nx >= 1 && nx <= WIDTH - 2 && ny >= 1 && ny <= HEIGHT - 2) {
-                    neighbors.add(new Point(nx, ny));
-                }
             }
         }
 
@@ -169,16 +186,6 @@ public class WilsonsSimple {
         return -1;
     }
 
-    // Helper method to check if a point is in the current path
-    private boolean isPointInPath(int x, int y) {
-        for (Point p : currentPath) {
-            if (p.x == x && p.y == y) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void addToMaze(Point p) {
         maze[p.y][p.x] = true;
         inMaze[p.y][p.x] = true;
@@ -196,11 +203,12 @@ public class WilsonsSimple {
     }
 
     private void addExtraEdges() {
-        int E0 = HEIGHT * WIDTH - 1;
-        int k = Math.round(IMPERFECTION * E0);
+        int E0 = ((WIDTH - 1) / 2) * ((HEIGHT - 1) / 2) - 1;
+        int k = Math.round(imperfection * E0);
 
         // Get all candidate walls
         List<Pair> candidateWalls = getCandidateWalls();
+        k = Math.min(k, candidateWalls.size());
 
         // Randomly select k walls to remove for imperfection
         for (int i = 0; i < k && !candidateWalls.isEmpty(); i++) {
@@ -213,6 +221,7 @@ public class WilsonsSimple {
 
             if (wallX >= 0 && wallX < WIDTH && wallY >= 0 && wallY < HEIGHT) {
                 maze[wallY][wallX] = true; // Remove wall (make it a path)
+                inMaze[wallY][wallX] = true;
             }
 
             candidateWalls.remove(randomIndex);
@@ -241,26 +250,24 @@ public class WilsonsSimple {
                             Point cellB = new Point(nx, ny);
 
                             // Check if neighbor is also a path
-                            if (maze[ny][nx]) {
-                                // Check if there's still a wall between them
-                                int wallX = (x + nx) / 2;
-                                int wallY = (y + ny) / 2;
+                            // Check if there's still a wall between them
+                            int wallX = (x + nx) / 2;
+                            int wallY = (y + ny) / 2;
 
-                                if (!maze[wallY][wallX]) { // Wall still exists
-                                    Pair candidatePair = new Pair(cellA, cellB);
+                            if (!maze[wallY][wallX]) { // Wall still exists
+                                Pair candidatePair = new Pair(cellA, cellB);
 
-                                    // Add only if not already in list (avoid duplicates due to unordered nature)
-                                    boolean alreadyExists = false;
-                                    for (Pair existing : candidateWalls) {
-                                        if (existing.equals(candidatePair)) {
-                                            alreadyExists = true;
-                                            break;
-                                        }
+                                // Add only if not already in list (avoid duplicates due to unordered nature)
+                                boolean alreadyExists = false;
+                                for (Pair existing : candidateWalls) {
+                                    if (existing.equals(candidatePair)) {
+                                        alreadyExists = true;
+                                        break;
                                     }
+                                }
 
-                                    if (!alreadyExists) {
-                                        candidateWalls.add(candidatePair);
-                                    }
+                                if (!alreadyExists) {
+                                    candidateWalls.add(candidatePair);
                                 }
                             }
                         }
@@ -270,16 +277,6 @@ public class WilsonsSimple {
         }
 
         return candidateWalls;
-    }
-
-    class Point {
-        int x;
-        int y;
-
-        Point(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
     }
 
     class Pair {

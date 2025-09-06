@@ -1,3 +1,4 @@
+package old;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -10,8 +11,8 @@ import java.util.*;
 import java.util.List;
 
 public class Prims extends JFrame {
-    private static final int WIDTH = 9;
-    private static final int HEIGHT = 9;
+    private static final int WIDTH = 21;
+    private static final int HEIGHT = 21;
     private static final int CELL_SIZE = 12;
     private static final int ANIMATION_DELAY = 500;
 

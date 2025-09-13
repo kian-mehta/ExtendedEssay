@@ -42,6 +42,9 @@ public class WilsonsSimple {
 
     private void initializeMaze() {
         random = new Random();
+        long seed = random.nextLong();
+        System.out.println("SEED: " + seed);
+        random.setSeed(seed);
         maze = new boolean[HEIGHT][WIDTH];
         inMaze = new boolean[HEIGHT][WIDTH];
         unvisited = new ArrayList<>();
@@ -90,9 +93,12 @@ public class WilsonsSimple {
         return maze;
     }
 
-    public boolean[][] imperfectifyMaze() {
+    public boolean[][] imperfectifyMaze(boolean[][] maze) {
+        this.maze = maze;
+        HEIGHT = maze.length;
+        WIDTH = maze[0].length;
         addExtraEdges();
-        return maze;
+        return this.maze;
     }
 
     private void performRandomWalk(Point start) {
@@ -101,7 +107,7 @@ public class WilsonsSimple {
         currentPath.add(new Point(currentWalker.x, currentWalker.y));
 
         // Perform loop-erased random walk
-        int maxSteps = WIDTH * HEIGHT * 10; // Safety limit to prevent infinite loops
+        int maxSteps = WIDTH * HEIGHT * 100; // Safety limit to prevent infinite loops
         int stepCount = 0;
 
         while (!inMaze[currentWalker.y][currentWalker.x] && stepCount < maxSteps) {
@@ -205,6 +211,7 @@ public class WilsonsSimple {
     private void addExtraEdges() {
         int E0 = ((WIDTH - 1) / 2) * ((HEIGHT - 1) / 2) - 1;
         int k = Math.round(imperfection * E0);
+        System.out.println(k);
 
         // Get all candidate walls
         List<Pair> candidateWalls = getCandidateWalls();
@@ -225,6 +232,17 @@ public class WilsonsSimple {
             }
 
             candidateWalls.remove(randomIndex);
+        }
+    }
+
+    public void printMaze() {
+        // System.out.println("\t0 1 2 3 4 5 6 7 8 9 10");
+        for (int y = 0; y < maze.length; y++) {
+            // System.out.print(y + "\t");
+            for (int x = 0; x < maze[y].length; x++) {
+                System.out.print(maze[y][x] ? "  " : "██");
+            }
+            System.out.println();
         }
     }
 
@@ -307,4 +325,5 @@ public class WilsonsSimple {
             return Math.min(hash1, hash2) * 31 + Math.max(hash1, hash2);
         }
     }
+
 }

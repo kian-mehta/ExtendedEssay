@@ -37,17 +37,19 @@ public class Node {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
-        Node node = (Node) obj;
-        return row == node.row && col == node.col;
-    }
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Node)) return false;
+            Node other = (Node) o;
+            return row == other.row && col == other.col;
+        }
 
     @Override
     public int hashCode() {
         return Objects.hash(row, col);
+    }
+    @Override
+    public String toString() {
+        return "Node(" + row + "," + col + ")";
     }
 }
